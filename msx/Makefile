@@ -32,3 +32,7 @@ $(TARGET): $(OBJS)
 .PHONY: clean
 clean:
 	$(RM) $(TARGET) $(OBJS) *.bin 
+
+src/main.o:	src/main.c src/msxtext.h
+src/msxtext.o:	src/msxtext.c src/msxtext.h src/status.h
+ 
