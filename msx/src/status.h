@@ -10,5 +10,6 @@ typedef uint8_t Status;
 #define STATUS_OK 0
 #define STATUS_INVALID_VALUE 1
 #define STATUS_NOT_FOUND 2
+#define STATUS_FULL 3
 
 #endif

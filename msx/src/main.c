@@ -82,20 +82,32 @@ void initGraphics()
 void main()
 {
     int i;
+    Command command;
 
     initGraphics();
 
-    MTInitWindow(0, 1, 0, 30, 1, 0xa1);
-    MTInitWindow(1, 2, 2, 20, 10, 0xf1);
-    MTInitWindow(2, 10, 13, 20, 8, 0xf1);
+    MTInitWindow(0, WINMODE_PLAIN, 1, 0, 30, 1, 0xa1);
+    MTInitWindow(1, WINMODE_PLAIN, 2, 2, 20, 10, 0xf1);
+    MTInitWindow(2, WINMODE_PLAIN, 10, 13, 20, 8, 0xf1);
 
     MTClear(0, 0xf1);
     MTClear(1, 0xf1);
     MTClear(2, 0xf1);
 
-    MTPrint(0, 0x002);
-    MTPrint(1, 0x001);
-    MTPrint(2, 0x003);
+    command.command_type = COMMAND_TEXT;
+    command.parameter.CommandPrintText.key = 0x002;
+    MTStoreCommand(0,&command);
+
+    command.parameter.CommandPrintText.key = 0x003;
+    MTStoreCommand(1,&command);
+
+    command.parameter.CommandPrintText.key = 0x001;
+    MTStoreCommand(2,&command);
+
+    MTExecCommand(0);
+    MTExecCommand(1);
+    MTExecCommand(2);
+
 
     while(1){};
 }

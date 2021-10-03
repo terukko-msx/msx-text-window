@@ -22,11 +22,17 @@ typedef struct
 #define ADDR_NAM_TBL(x, y) (NAME_TBL + (y * 32) + x)
 #define ADDR_COL_TBL(x, y) (COLOR_TBL + (y * 256) + (x * 8))
 
+// ERROR Check
+#define ASSERT_WINID(wid) (wid < 0 || wid >= MAX_WINDOW)
+
 // Text data
 extern unsigned char glyphdata[];
 extern unsigned char textdata[];
 
+// Window Info Table
 WindowInfo windowInfo[MAX_WINDOW];
+
+// Text Parameter (Return Value)
 TextInfo textinfo;
 
 // Local
@@ -58,13 +64,16 @@ Status mtGetText(uint16_t key)
 }
 
 // Public
-Status MTInitWindow(uint8_t wid, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t bgcolor)
+Status MTInitWindow(uint8_t wid, uint8_t mode, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t bgcolor)
 {
+    uint8_t index;
+
     if (wid < 0 || wid >= MAX_WINDOW)
     {
         return STATUS_INVALID_VALUE;
     }
 
+    windowInfo[wid].mode = mode;
     windowInfo[wid].x = x;
     windowInfo[wid].y = y;
     windowInfo[wid].w = w;
@@ -72,8 +81,18 @@ Status MTInitWindow(uint8_t wid, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uin
     windowInfo[wid].bgcolor = bgcolor;
     windowInfo[wid].cx = 0;
     windowInfo[wid].cy = 0;
+    windowInfo[wid].queue_num = 0;
+
+    for (index = 0; index < MAX_COMMAND_QUEUE; index++)
+    {
+        windowInfo[wid].queue[index].command_type = COMMAND_NOP;
+    }
+
     return STATUS_OK;
 }
+
+
+
 
 Status MTClear(uint8_t wid, uint8_t color)
 {
@@ -81,6 +100,45 @@ Status MTClear(uint8_t wid, uint8_t color)
     for (y = windowInfo[wid].y; y < windowInfo[wid].y + windowInfo[wid].h; y++)
     {
         fill(ADDR_COL_TBL(windowInfo[wid].x, y), color, windowInfo[wid].w * 8);
+    }
+}
+
+Status MTClearCommand(uint8_t wid)
+{
+    uint8_t index;
+    for (index = 0; index < MAX_COMMAND_QUEUE; index++)
+    {
+        windowInfo[wid].queue[index].command_type = COMMAND_NOP;
+    }
+    windowInfo[wid].queue_num = 0;
+}
+
+Status MTStoreCommand(uint8_t wid, Command *param)
+{
+    if (ASSERT_WINID(wid))
+        return STATUS_INVALID_VALUE;
+    if (windowInfo[wid].queue_num == MAX_COMMAND_QUEUE)
+        return STATUS_FULL;
+
+    windowInfo[wid].queue[windowInfo[wid].queue_num] = *param;
+    windowInfo[wid].queue_num++;
+}
+
+Status MTExecCommand(uint8_t wid)
+{
+    uint8_t index;
+    if (ASSERT_WINID(wid))
+        return STATUS_INVALID_VALUE;
+    for (index = 0; index < windowInfo[wid].queue_num; index++)
+    {
+        switch (windowInfo[wid].queue[index].command_type)
+        {
+        case COMMAND_TEXT:
+            MTPrint(wid, windowInfo[wid].queue[index].parameter.CommandPrintText.key);
+            break;
+        default:
+            break;
+        }
     }
 }
 

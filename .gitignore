@@ -4,3 +4,4 @@ venv3.9.6/
 msx/src/*.o
 msx/*.bin
 msx/*.rom
+msx/*.map
