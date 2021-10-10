@@ -7,6 +7,7 @@
 
 #include "msxtext.h"
 
+
 /* WORKAREA */
 #define MSX_CSRY 0xf3dc  // Cursor Y position
 #define MSX_CSRX 0xf3dd  // Cursor X position
@@ -84,30 +85,30 @@ void main()
     int i;
     Command command;
 
+    initLog();
     initGraphics();
 
-    MTInitWindow(0, WINMODE_PLAIN, 1, 0, 30, 1, 0xa1);
-    MTInitWindow(1, WINMODE_PLAIN, 2, 2, 20, 10, 0xf1);
-    MTInitWindow(2, WINMODE_PLAIN, 10, 13, 20, 8, 0xf1);
+    //MTInitWindow(0, WINMODE_PLAIN|WINMODE_SHOW, 1, 0, 30, 1, 0xa1);
+    MTInitWindow(2, WINMODE_BORDER|WINMODE_SHOW, 7, 1, 20, 10, 0xf1);
+    MTInitWindow(1, WINMODE_BORDER|WINMODE_SHOW, 2, 6, 20, 10, 0xf1);
+    MTInitWindow(0, WINMODE_BORDER|WINMODE_SHOW, 6, 13, 11, 8, 0xf1);
 
-    MTClear(0, 0xf1);
-    MTClear(1, 0xf1);
-    MTClear(2, 0xf1);
-
+    //MTClear(0, 0xf1);
+    MTClear(0, 0xf8);
     command.command_type = COMMAND_TEXT;
-    command.parameter.CommandPrintText.key = 0x002;
+    command.parameter.CommandPrintText.key = 0x0001;
     MTStoreCommand(0,&command);
-
-    command.parameter.CommandPrintText.key = 0x003;
-    MTStoreCommand(1,&command);
-
-    command.parameter.CommandPrintText.key = 0x001;
-    MTStoreCommand(2,&command);
-
     MTExecCommand(0);
-    MTExecCommand(1);
-    MTExecCommand(2);
 
+    MTClear(1, 0xf2);
+    command.parameter.CommandPrintText.key = 0x0002;
+    MTStoreCommand(1,&command);
+    MTExecCommand(1);
+
+    MTClear(2, 0xf5);
+    command.parameter.CommandPrintText.key = 0x0003;
+    MTStoreCommand(2,&command);
+    MTExecCommand(2);
 
     while(1){};
 }

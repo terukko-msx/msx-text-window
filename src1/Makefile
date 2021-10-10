@@ -1,5 +1,5 @@
 # プログラム名とオブジェクトファイル名
-PROJECT = textwin
+PROJECT = example
 TARGET = $(PROJECT).rom
 SRC_DIR = src
 OBJ_DIR = obj
@@ -8,8 +8,8 @@ OBJS = src/main.o src/msxtext.o src/data.o
 
 # 定義済みマクロの再定義
 CC = zcc
-CFLAGS = +msx
-TARGET_OPTION = +msx -subtype=rom -create-app -lmsxbios
+CFLAGS = +msx -debug -g3 -O0
+TARGET_OPTION = +msx -subtype=rom -create-app -lmsxbios -debug -g3 -O0
 
 # サフィックスルール適用対象の拡張子の定義
 .SUFFIXES: .c .o

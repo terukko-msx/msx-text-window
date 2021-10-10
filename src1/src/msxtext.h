@@ -7,6 +7,7 @@
 
 #define MAX_WINDOW 5
 #define MAX_COMMAND_QUEUE 10
+#define NULL_WINDOW 255
 
 // Command Type
 #define COMMAND_NOP 0
@@ -71,4 +72,6 @@ Status MTClear(uint8_t wid, uint8_t color);
 Status MTClearCommand(uint8_t wid);
 Status MTStoreCommand(uint8_t wid, Command *param);
 Status MTExecCommand(uint8_t wid);
+void initLog(void);
+void printLog(void);
 #endif

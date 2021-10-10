@@ -6,6 +6,11 @@
 
 #include "msxtext.h"
 
+
+// log
+char log[255];
+
+
 //
 typedef struct
 {
@@ -28,6 +33,12 @@ typedef struct
 // Text data
 extern unsigned char glyphdata[];
 extern unsigned char textdata[];
+extern uint8_t border_h[];
+extern uint8_t border_v[];
+extern uint8_t border_tl[];
+extern uint8_t border_tr[];
+extern uint8_t border_bl[];
+extern uint8_t border_br[];
 
 // Window Info Table
 WindowInfo windowInfo[MAX_WINDOW];
@@ -91,8 +102,106 @@ Status MTInitWindow(uint8_t wid, uint8_t mode, uint8_t x, uint8_t y, uint8_t w, 
     return STATUS_OK;
 }
 
+bool mtIsInsideOfWindow(uint8_t wid, uint8_t x, uint8_t y)
+{
+    if (windowInfo[wid].w == 0 || windowInfo[wid].h == 0) {
+        return false;
+    }
 
+    if (x >= windowInfo[wid].x && x <= (windowInfo[wid].x + windowInfo[wid].w - 1))
+    {
+        if (y >= windowInfo[wid].y && y <= (windowInfo[wid].y + windowInfo[wid].h - 1))
+        {
+            sprintf(log,"in(%d)[%d,%d](%d,%d,%d,%d)",wid,x,y,windowInfo[wid].x,windowInfo[wid].y,windowInfo[wid].w,windowInfo[wid].h);
+            return true;
+        }
+    }
+    sprintf(log,"out(%d)[%d,%d](%d,%d,%d,%d)",wid,x,y,windowInfo[wid].x,windowInfo[wid].y,windowInfo[wid].w,windowInfo[wid].h);
+    return false;
+}
 
+uint8_t mtGetExposedWindow(uint8_t x, uint8_t y)
+{
+    uint8_t wid;
+    for (wid = MAX_WINDOW - 1; wid >= 0; wid--)
+    {
+        if ((windowInfo[wid].mode & WINMODE_SHOW) == WINMODE_SHOW) {
+            if (mtIsInsideOfWindow(wid, x, y)==true) {
+                return wid;
+            }
+        }
+        if (wid==0) break;
+    }
+    return NULL_WINDOW;
+}
+
+Status mtDrawBorder(uint8_t wid){
+    uint8_t x, y, i;
+
+    if ((windowInfo[wid].mode & WINMODE_BORDER) == 0) {
+        return STATUS_OK;
+    }
+
+    x = windowInfo[wid].x;
+    y = windowInfo[wid].y;
+
+    if (mtGetExposedWindow(x,y)==wid) {
+        vwrite(border_tl,ADDR_PTN_TBL(x,y),8);
+        fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+    }
+
+    x++;
+    for (i=0;i<windowInfo[wid].w-2;i++){
+        if (mtGetExposedWindow(x,y)==wid) {
+            vwrite(border_h,ADDR_PTN_TBL(x,y),8);
+            fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+        }
+        x++;
+    }
+
+    if (mtGetExposedWindow(x,y)==wid) {
+        vwrite(border_tr,ADDR_PTN_TBL(x,y),8);
+        fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+    }
+
+    x = windowInfo[wid].x;
+    y = windowInfo[wid].y+1;
+    for(i=0;i<windowInfo[wid].h-2;i++) {
+        if (mtGetExposedWindow(x,y)==wid) {
+            vwrite(border_v,ADDR_PTN_TBL(x,y),8);
+            fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+        }
+        if (mtGetExposedWindow(x+windowInfo[wid].w-1,y)==wid) {
+            vwrite(border_v,ADDR_PTN_TBL((x+windowInfo[wid].w-1),y),8);
+            fill(ADDR_COL_TBL((x+windowInfo[wid].w-1),y), 0xf1, 8);
+        }
+        y++;
+    }
+
+    x = windowInfo[wid].x;
+    y = windowInfo[wid].y + windowInfo[wid].h -1;
+
+    if (mtGetExposedWindow(x,y)==wid) {
+        vwrite(border_bl,ADDR_PTN_TBL(x,y),8);
+        fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+    }
+
+    x++;
+    for (i=0;i<windowInfo[wid].w-2;i++){
+        if (mtGetExposedWindow(x,y)==wid) {
+            vwrite(border_h,ADDR_PTN_TBL(x,y),8);
+            fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+        }
+        x++;
+    }
+
+    if (mtGetExposedWindow(x,y)==wid) {
+        vwrite(border_br,ADDR_PTN_TBL(x,y),8);
+        fill(ADDR_COL_TBL(x,y), 0xf1, 8);
+    }
+
+    return STATUS_OK;
+}
 
 Status MTClear(uint8_t wid, uint8_t color)
 {
@@ -101,6 +210,8 @@ Status MTClear(uint8_t wid, uint8_t color)
     {
         fill(ADDR_COL_TBL(windowInfo[wid].x, y), color, windowInfo[wid].w * 8);
     }
+
+    return mtDrawBorder(wid);
 }
 
 Status MTClearCommand(uint8_t wid)
@@ -181,4 +292,13 @@ Status MTPrint(uint8_t wid, uint16_t key)
         }
     }
     return STATUS_OK;
+}
+
+void initLog() {
+    sprintf(log, "Log:");
+}
+
+void printLog(void) {
+    set_mode(1);
+    printf(log);
 }
